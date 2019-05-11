@@ -1,0 +1,45 @@
+# Copyright (c) 2015-2016, Gregory M. Kurtzer. All rights reserved.
+#
+# "Singularity" Copyright (c) 2016, The Regents of the University of California,
+# through Lawrence Berkeley National Laboratory (subject to receipt of any
+# required approvals from the U.S. Dept. of Energy).  All rights reserved.
+
+BootStrap: debootstrap
+OSVersion: stable
+MirrorURL: http://ftp.us.debian.org/debian/
+
+# Where files go to transfer TO app once everything is finished
+%files
+
+
+
+%runscript
+    export PATH="/usr/local/anaconda/bin:$PATH"
+    exec unicycler "$@"
+
+# This is what is run to build and create container
+%post
+
+    apt-get -y --allow-unauthenticated update
+    apt-get -y --allow-unauthenticated install build-essential python3-setuptools python3-pkg-resources wget
+
+    # install anaconda
+    if [ ! -d /usr/local/anaconda ]; then
+         wget https://repo.continuum.io/miniconda/Miniconda2-4.6.14-Linux-x86_64.sh -O ~/anaconda.sh
+         bash ~/anaconda.sh -b -p /usr/local/anaconda
+         rm ~/anaconda.sh
+    fi
+    # set anaconda path
+    export PATH="/usr/local/anaconda/bin:$PATH"
+
+    #install the bits
+    conda install -c conda-forge -c bioconda unicycler=0.4.7
+    conda clean --tarballs
+
+
+
+
+    export BINPATH=/usr/local/bin
+
+    # TACC's Stampede compliant
+    mkdir /home1 && mkdir /scratch && mkdir /work
