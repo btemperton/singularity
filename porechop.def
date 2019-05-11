@@ -1,0 +1,34 @@
+# Copyright (c) 2015-2016, Gregory M. Kurtzer. All rights reserved.
+#
+# "Singularity" Copyright (c) 2016, The Regents of the University of California,
+# through Lawrence Berkeley National Laboratory (subject to receipt of any
+# required approvals from the U.S. Dept. of Energy).  All rights reserved.
+
+BootStrap: debootstrap
+OSVersion: stable
+MirrorURL: http://ftp.us.debian.org/debian/
+
+# Where files go to transfer TO app once everything is finished
+%files
+
+
+
+%runscript
+exec porechop "$@"
+
+# This is what is run to build and create container
+%post
+
+    PORECHOP_VERSION=0.2.4
+    apt-get -y --allow-unauthenticated update
+    apt-get -y --allow-unauthenticated install build-essential python3-setuptools python3-pkg-resources wget
+    wget --no-verbose https://github.com/rrwick/Porechop/archive/v${PORECHOP_VERSION}.tar.gz
+    tar xzf v${PORECHOP_VERSION}.tar.gz
+    rm v${PORECHOP_VERSION}.tar.gz
+    cd Porechop-${PORECHOP_VERSION}
+    python3 setup.py install
+
+    export BINPATH=/usr/local/bin
+
+    # TACC's Stampede compliant
+    mkdir /home1 && mkdir /scratch && mkdir /work
